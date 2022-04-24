@@ -16,7 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class Tag {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long tagId;
     @Column(unique = true)
     private String tagName;

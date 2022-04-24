@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @RestController
@@ -31,32 +31,31 @@ public class ImageController {
 
     @PostMapping("/")
     @ResponseStatus(value = HttpStatus.OK)
-    public void saveImage(@RequestBody Image[] images)
-    {
+    public void saveImage(@RequestBody Image[] images) {
         Set<Tag> tags = new HashSet<>();
         Tag persistentTag;
         Image persistentImage;
-        for(Image image: images)
-        {
+        for (Image image : images) {
             tags.clear();
             tags.addAll(image.getTags());
-            for(Tag tag: tags) {
+            for (Tag tag : tags) {
 
                 image.getTags().remove(tag);
+                tag.setTagName(tag.getTagName().replaceAll("[^0-9a-zA-Z_]", "").toLowerCase(Locale.ROOT));
                 persistentTag = tagService.findTagByTagName(tag.getTagName());
                 if (persistentTag == null) {
                     persistentTag = tagService.saveTag(tag);
-                }else{
+                } else {
                     persistentTag.setTagType(tag.getTagType());
                     tagService.saveTag(persistentTag);
                 }
                 image.getTags().add(persistentTag);
             }
             persistentImage = imageService.findImageByImageUrl(image.getImageUrl());
-            if(persistentImage == null) {
+            if (persistentImage == null) {
                 persistentImage = imageService.saveImage(image);
                 image.setImageLocation(imageUtils.saveImage(
-                        persistentImage.getImageUrl(),persistentImage.getImageId()
+                        persistentImage.getImageUrl(), persistentImage.getImageId()
                 ));
             } else {
                 persistentImage.setTags(image.getTags());
@@ -66,15 +65,13 @@ public class ImageController {
     }
 
     @GetMapping("/tags")
-    public Set<Tag> getTags(@RequestParam("tags") List<String> tagNames)
-    {
+    public Set<Tag> getTags(@RequestParam("tags") List<String> tagNames) {
         Set<Tag> tags = new HashSet<>();
         Tag tag;
-        for(String tagName: tagNames)
-        {
+        for (String tagName : tagNames) {
             tag = tagService.findTagByTagName(tagName);
 
-            if(tag!=null) {
+            if (tag != null) {
                 tag.setImages(null);
                 tags.add(tag);
             }
@@ -84,8 +81,7 @@ public class ImageController {
     }
 
     @GetMapping("")
-    public Set<Image> getImages(@RequestParam("tags") List<String> tagNames)
-    {
+    public Set<Image> getImages(@RequestParam("tags") List<String> tagNames) {
         log.info(tagNames.toString());
         Tag tag;
         Set<Image> images = new HashSet<>();
@@ -95,11 +91,9 @@ public class ImageController {
 
     @PostMapping("/tags/update/")
     @ResponseStatus(value = HttpStatus.OK)
-    public void updateTags(@RequestBody Tag[] tags)
-    {
+    public void updateTags(@RequestBody Tag[] tags) {
         log.info("inside update tags of image controller");
-        for(Tag tag: tags)
-        {
+        for (Tag tag : tags) {
             tagService.saveTag(tag);
         }
     }
