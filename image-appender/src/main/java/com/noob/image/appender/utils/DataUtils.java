@@ -6,6 +6,9 @@ import com.noob.image.appender.service.ImageService;
 import com.noob.image.appender.service.TagService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import opennlp.tools.tokenize.WhitespaceTokenizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,12 +29,18 @@ public class DataUtils {
 
     public String addImages(String paragraph) {
         String imagesHtml = "";
-        String temp = paragraph.replaceAll("[^a-zA-Z0-9 ]", " ");
+        String temp = paragraph.replaceAll("[^a-zA-Z0-9- ]", " ");
         temp = temp.trim().toLowerCase(Locale.ROOT);
         temp = temp.replaceAll(" +", " ");
-        String[] words = temp.split(" ");
-
-        List<Tag> tempTags = tagService.findTagsInArray(words);
+        WhitespaceTokenizer whitespaceTokenizer = WhitespaceTokenizer.INSTANCE;
+        String[] tokens = whitespaceTokenizer.tokenize(temp);
+        SnowballStemmer ss = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
+        List<String> words = new ArrayList<>();
+        for (String token : tokens) {
+            words.add(doStemming(token, ss));
+        }
+//        String[] words = temp.split(" ");
+        List<Tag> tempTags = tagService.findTagsInArray(words.toArray(new String[words.size()]));
         List<Tag> tags = new ArrayList<>();
         for (String word : words) {
             for (Tag tag : tempTags) {
@@ -40,7 +49,7 @@ public class DataUtils {
                 }
             }
         }
-        HashSet<Image> images = (HashSet<Image>) imageService.getImagesByTags(Arrays.asList(words));
+        HashSet<Image> images = (HashSet<Image>) imageService.getImagesByTags(words);
         HashSet<Image> imagesToAdd = new HashSet<>();
         ArrayList<Tag> processedTags = new ArrayList<>();
 
@@ -81,7 +90,7 @@ public class DataUtils {
         String imageUrl;
         for (Image image : imagesToAdd) {
             imageUrl = (image.getImageLocation() == null) ? image.getImageUrl() : "image/" + image.getImageLocation();
-            imagesHtml += "<img src=\"" + imageUrl + "\" style=\"height:300px;width:auto;\" title = \"" +
+            imagesHtml += "<img src=\"" + imageUrl + "\" style=\"height:300px;width:auto;\" onclick=\"viewImage(" + image.getImageId() + ")\" title = \"" +
                     image.getImageId() + "\">";
         }
         return imagesHtml;
@@ -132,6 +141,10 @@ public class DataUtils {
         Random random = new Random();
         int randomNumber = random.nextInt(tempImages.size());
         return tempImages.get(randomNumber);
+    }
+
+    private String doStemming(String token, Stemmer stemmer) {
+        return stemmer.stem(token).toString();
     }
 
     @SneakyThrows

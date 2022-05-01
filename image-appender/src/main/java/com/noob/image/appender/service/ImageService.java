@@ -25,17 +25,25 @@ public class ImageService {
     }
 
     public Set<Image> getImagesByTags(List<String> tagNames) {
-        return imageRepository.getImagesByTags(tagNames,new Long(tagNames.size()));
+        return imageRepository.getImagesByTags(tagNames, new Long(tagNames.size()));
     }
 
     public List<Image> getImagesByMatchingTags(ArrayList<String> processedTags, String coreTag) {
-        Long count = imageRepository.getCountOfImagesByMatchingTags(processedTags,coreTag);
+        Long count = imageRepository.getCountOfImagesByMatchingTags(processedTags, coreTag);
 
-        if(count!=null)
-        {
+        if (count != null) {
 //            log.info("count {} - tags {} - {}",count,processedTags.toString(),coreTag);
-            return imageRepository.getImagesByMatchingTags(processedTags,coreTag,count);
+            return imageRepository.getImagesByMatchingTags(processedTags, coreTag, count);
         }
         return new ArrayList<>();
+    }
+
+    public Image findImageByImageId(Long imageId) {
+        return imageRepository.findImageByImageId(imageId);
+    }
+    
+
+    public void delete(Image image) {
+        this.imageRepository.delete(image);
     }
 }

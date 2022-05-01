@@ -6,6 +6,8 @@ import com.noob.image.appender.service.ImageService;
 import com.noob.image.appender.service.TagService;
 import com.noob.image.appender.utils.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -35,13 +37,13 @@ public class ImageController {
         Set<Tag> tags = new HashSet<>();
         Tag persistentTag;
         Image persistentImage;
+        SnowballStemmer ps = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
         for (Image image : images) {
             tags.clear();
             tags.addAll(image.getTags());
             for (Tag tag : tags) {
-
                 image.getTags().remove(tag);
-                tag.setTagName(tag.getTagName().replaceAll("[^0-9a-zA-Z_]", "").toLowerCase(Locale.ROOT));
+                tag.setTagName(doStemming(tag.getTagName().replaceAll("[^0-9a-zA-Z_-]", "").toLowerCase(Locale.ROOT), ps));
                 persistentTag = tagService.findTagByTagName(tag.getTagName());
                 if (persistentTag == null) {
                     persistentTag = tagService.saveTag(tag);
@@ -80,6 +82,13 @@ public class ImageController {
         return tags;
     }
 
+    @GetMapping("/image/{imageId}")
+    public Image getImage(@PathVariable("imageId") Long imageId) {
+        Image image;
+        image = imageService.findImageByImageId(imageId);
+        return image;
+    }
+
     @GetMapping("")
     public Set<Image> getImages(@RequestParam("tags") List<String> tagNames) {
         log.info(tagNames.toString());
@@ -98,6 +107,19 @@ public class ImageController {
         }
     }
 
+    @GetMapping("delete")
+    public void deleteImage(@RequestParam("imageId") Long imageId) {
+        Image image = imageService.findImageByImageId(imageId);
+        Set<Tag> tags = new HashSet<>();
+        image.setTags(tags);
+        if (image != null) {
+            imageService.delete(image);
+        }
+    }
+
+    private String doStemming(String token, Stemmer stemmer) {
+        return stemmer.stem(token).toString();
+    }
 
 }
 
