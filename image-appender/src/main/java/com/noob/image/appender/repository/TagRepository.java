@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TagRepository extends JpaRepository<Tag,Long> {
+public interface TagRepository extends JpaRepository<Tag, Long> {
 
     Tag findTagByTagName(String tagName);
 
@@ -18,4 +18,8 @@ public interface TagRepository extends JpaRepository<Tag,Long> {
     long countByTagName(String name);
 
     Tag getTagByTagName(String word);
+
+    List<Tag> findByTagNameContaining(String tagName);
+
+    Tag findTagByTagId(Long tagId);
 }

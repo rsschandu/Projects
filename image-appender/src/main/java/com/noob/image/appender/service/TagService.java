@@ -33,4 +33,20 @@ public class TagService {
     public Tag getTagByTagName(String word) {
         return tagRepository.getTagByTagName(word);
     }
+
+    public List<Tag> findByTagNameContaining(String tagName) {
+        return tagRepository.findByTagNameContaining(tagName);
+    }
+
+    public Tag findTagByTagId(Long tagId) {
+        return tagRepository.findTagByTagId(tagId);
+    }
+
+    public void delete(Tag tag) {
+        tagRepository.delete(tag);
+    }
+
+    public void save(Tag persistantTag) {
+        tagRepository.save(persistantTag);
+    }
 }
