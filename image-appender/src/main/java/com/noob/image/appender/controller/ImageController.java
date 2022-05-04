@@ -112,8 +112,12 @@ public class ImageController {
         Image image = imageService.findImageByImageId(imageId);
         Set<Tag> tags = new HashSet<>();
         image.setTags(tags);
+        String imageLocation = image.getImageLocation();
         if (image != null) {
             imageService.delete(image);
+        }
+        if (imageLocation != null || imageLocation != "") {
+            imageUtils.deleteImageFromDisk(imageLocation);
         }
     }
 

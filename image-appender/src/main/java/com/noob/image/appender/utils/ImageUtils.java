@@ -14,10 +14,10 @@ import java.net.URL;
 public class ImageUtils {
     @Value("${base.storage.location}")
     private String baseLocation;
-    public String saveImage(String url, Long imageId)
-    {
 
-        try{
+    public String saveImage(String url, Long imageId) {
+
+        try {
             URL imageUrl = new URL(url);
             HttpURLConnection connection = (HttpURLConnection) imageUrl.openConnection();
             connection.setConnectTimeout(5000);
@@ -25,12 +25,11 @@ public class ImageUtils {
             connection.connect();
 
             String extension = FilenameUtils.getExtension(imageUrl.getPath());
-            if(extension == null || extension.isEmpty())
-            {
+            if (extension == null || extension.isEmpty()) {
                 return null;
             }
 //            log.info(String.valueOf(extension.isEmpty()));
-            String location= baseLocation + String.valueOf(imageId)+"."
+            String location = baseLocation + imageId + "."
                     + extension;
 //            log.info("opening inputstream");
 //            InputStream imageReader = new BufferedInputStream(
@@ -44,23 +43,27 @@ public class ImageUtils {
 
             int readByte;
 
-            while ((readByte = imageReader.read()) != -1)
-            {
+            while ((readByte = imageReader.read()) != -1) {
                 imageWriter.write(readByte);
             }
             imageReader.close();
             imageWriter.close();
             connection.disconnect();
-            log.info("image is stored at: {}",location);
-            return String.valueOf(imageId)+"." + extension;
-        }
-        catch(Exception e)
-        {
+            log.info("image is stored at: {}", location);
+            return imageId + "." + extension;
+        } catch (Exception e) {
 //            log.info("exception cauthgt{}",e);
             return null;
         }
 
+    }
 
-
+    public void deleteImageFromDisk(String location) {
+        File file = new File(this.baseLocation + location);
+        if (file.delete()) {
+            log.info("File at " + this.baseLocation + location + " deleted successfully");
+        } else {
+            log.error("Failed to delete the file:" + this.baseLocation + location);
+        }
     }
 }
